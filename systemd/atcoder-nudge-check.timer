@@ -1,0 +1,10 @@
+[Unit]
+Description=AtCoder nudge timer (check)
+
+[Timer]
+OnCalendar=*-*-* 07..23:15,45:00
+Persistent=false
+Unit=atcoder-nudge@check.service
+
+[Install]
+WantedBy=timers.target

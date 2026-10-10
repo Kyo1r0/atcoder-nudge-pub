@@ -1,0 +1,22 @@
+[Unit]
+Description=atcoder-nudge - Meguru reminds you to do AtCoder every day (%i)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+
+# ===== ここを自分の環境に合わせて書き換えてください =====
+# User             : スクリプトを実行するユーザー名
+# WorkingDirectory : リポジトリを clone した場所
+# ExecStart        : venv の python と nudge.py のフルパス
+#
+# README の手順どおり sed で置き換えるなら、手で編集する必要はありません。
+# 例) ~/atcoder-nudge に clone し、その中に .venv を作った場合のパスになっています。
+User=YOUR_USER
+WorkingDirectory=/home/YOUR_USER/atcoder-nudge
+ExecStart=/home/YOUR_USER/atcoder-nudge/.venv/bin/python /home/YOUR_USER/atcoder-nudge/nudge.py %i
+# =========================================================
+
+# [Install] は書かない。起動はタイマー（*.timer）から行うため、
+# このサービス自体を enable する必要はない。

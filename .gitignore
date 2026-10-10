@@ -1,0 +1,18 @@
+# 個人設定（Webhook URL を含む）
+config.json
+
+# 自動生成
+data/
+.venv/
+__pycache__/
+
+# 画像・フォントは各自で用意（権利物を含むため管理しない）
+images/*/*
+!images/*/.keep
+fonts/*
+!fonts/.keep
+
+
+# テストは含まない
+tests/
+

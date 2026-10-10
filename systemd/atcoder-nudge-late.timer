@@ -1,0 +1,10 @@
+[Unit]
+Description=AtCoder nudge timer (late)
+
+[Timer]
+OnCalendar=*-*-* 23:00:00
+Persistent=false
+Unit=atcoder-nudge@late.service
+
+[Install]
+WantedBy=timers.target
