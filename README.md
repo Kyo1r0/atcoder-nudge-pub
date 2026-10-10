@@ -283,6 +283,12 @@ sudo systemctl daemon-reload
 
 ただし「因幡めぐる」というキャラクターの権利はゆずソフトにあり、このライセンスの対象外です。キャラクター画像などを使う場合は、上記の著作権ガイドラインに従ってください。
 
+## 謝辞
+
+提出履歴・問題一覧・難易度のデータは、kenkoooo さんが運営する [AtCoder Problems](https://kenkoooo.com/atcoder/) の [API](https://github.com/kenkoooo/AtCoderProblems/blob/master/doc/api.md) を利用させていただいています。AtCoder 公式には提出履歴を取得できる API がないため、このスクリプトは AtCoder Problems があって初めて動きます。素晴らしいサービスの運営に感謝します。
+
+API は個人の善意で運営されているので、実行間隔を極端に短くするなど、負荷をかける使い方はしないでください。
+
 ## 関連リンク
 
 - [サノバウィッチ 公式サイト（ゆずソフト）](https://www.yuzu-soft.com/new/product/sothewitch/) — 原作。※成人向けサイトのため18歳未満は閲覧できません
