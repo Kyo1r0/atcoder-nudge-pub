@@ -5,6 +5,7 @@ config.json
 data/
 .venv/
 __pycache__/
+.pytest_cache/
 
 # 画像・フォントは各自で用意（権利物を含むため管理しない）
 images/*/*
@@ -12,7 +13,5 @@ images/*/*
 fonts/*
 !fonts/.keep
 
-
-# テストは含まない
+# 開発用（配布物には含めない）
 tests/
-

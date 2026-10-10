@@ -159,15 +159,24 @@ def is_milestone(n):
 
 # ---------------------------------------------------------------- お題選び
 
-def pick_problems(subs):
-    """ABC の A/B/C それぞれについて、未ACのうち最新のコンテストのものを選ぶ。"""
-    solved = {s["problem_id"] for s in subs if s["result"] == "AC"}
-    contests = cached_resource("contests.json")
-    contest_problems = cached_resource("contest-problem.json")
-    problems = cached_resource("problems.json")
+def fetch_catalog():
+    """お題選びに使う問題一覧を取ってくる（キャッシュ付き）。"""
+    return {
+        "contests": cached_resource("contests.json"),
+        "contest_problems": cached_resource("contest-problem.json"),
+        "problems": cached_resource("problems.json"),
+    }
 
-    info = {p["id"]: p for p in problems}
-    now_sec = time.time()
+
+def pick_problems(subs, catalog, now_sec):
+    """ABC の A/B/C それぞれについて、未ACのうち最新のコンテストのものを選ぶ。
+
+    外には触らない：必要なデータと現在時刻はすべて引数で受け取る。
+    """
+    solved = {s["problem_id"] for s in subs if s["result"] == "AC"}
+    contests = catalog["contests"]
+    contest_problems = catalog["contest_problems"]
+    info = {p["id"]: p for p in catalog["problems"]}
     abc_start = {c["id"]: c["start_epoch_second"] for c in contests
                  if re.fullmatch(r"abc\d+", c["id"])
                  and c["start_epoch_second"] + c["duration_second"] < now_sec}
@@ -300,7 +309,7 @@ def post(cfg, content, embeds=None, image=None, dry_run=False):
 
 # ---------------------------------------------------------------- 各モード
 
-def do_morning(cfg, msgs, subs, days, today, current, best, dry_run):
+def do_morning(msgs, picks, days, today, current, best):
     parts = []
     yesterday = today - ONE_DAY
     lost = run_ending(days, yesterday - ONE_DAY)
@@ -308,15 +317,13 @@ def do_morning(cfg, msgs, subs, days, today, current, best, dry_run):
         parts.append(say(msgs, "broken", days=lost, best=best))
     parts.append(say(msgs, "morning", days=current, next=current + 1, best=best))
 
-    picks = pick_problems(subs)
     labels = {"A": "A問題", "B": "B問題", "C": "C問題（余裕があれば！）"}
     lines = [f"**{labels[i]}**　[{p['title']}]({p['url']})　`{p['contest_id']}`"
              for i, p in picks.items()]
     embed = {"title": "📝 今日のお題",
              "description": "\n".join(lines) or "未ACの問題が見つかりませんでした……すごいです、センパイ！",
              "color": 0xFF7AA2}
-    post(cfg, "\n".join(parts), embeds=[embed], dry_run=dry_run)
-
+    return "\n".join(parts), embed
 
 def do_celebrate(cfg, msgs, days, current, best, dry_run):
     milestone = is_milestone(current)
@@ -327,8 +334,7 @@ def do_celebrate(cfg, msgs, days, current, best, dry_run):
     else:
         key = "done"
     text = say(msgs, key, days=current, best=best)
-    post(cfg, text, image=make_card(current, best, milestone, cfg), dry_run=dry_run)
-
+    return [text,milestone]
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -357,10 +363,14 @@ def main():
     state = load_json(state_path, {})
 
     if args.mode == "morning":
-        do_morning(cfg, msgs, subs, days, today, current, best, args.dry_run)
+        picks = pick_problems(subs, fetch_catalog(), time.time())
+        text, embed = do_morning(msgs, picks, days, today, current, best)
+        post(cfg, text, embeds=[embed], dry_run=args.dry_run)
     elif today in days:
         if state.get("celebrated") != str(today):
-            do_celebrate(cfg, msgs, days, current, best, args.dry_run)
+            [text,milestone] = do_celebrate(cfg, msgs, days, current, best, args.dry_run)
+            card = make_card(current, best, milestone, cfg)
+            post(cfg, text, image=card, dry_run=args.dry_run)
             if not args.dry_run:
                 state["celebrated"] = str(today)
     elif args.mode in ("remind", "late"):
