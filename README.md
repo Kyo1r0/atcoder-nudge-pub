@@ -37,6 +37,48 @@
 
 節目の日: 3, 7, 14, 30, 50, 77日、100の倍数、365の倍数
 
+## GitHub Actions で使う（おすすめ）
+
+Raspberry Pi や自前サーバーを用意しなくても、GitHub Actions で定期実行できます。まずはこちらの方法がおすすめです。
+
+### 1. リポジトリを Fork
+
+このリポジトリ右上の **Fork** から、自分の GitHub アカウントにコピーします。通知設定や実行履歴は自分の Fork ごとに管理されます。
+
+### 2. Actions Secrets を登録
+
+Fork したリポジトリで **Settings → Secrets and variables → Actions → New repository secret** を開き、次の2つを登録します。
+
+| Secret 名 | 値 |
+|---|---|
+| `ATCODER_USER` | 自分の AtCoder ユーザー名 |
+| `DISCORD_WEBHOOK_URL` | 通知先 Discord チャンネルの Webhook URL |
+
+Webhook URL は秘密情報です。コードや README に書いたり、ログに出力したりしないでください。
+
+### 3. Actions を有効にして手動テスト
+
+Fork の **Actions** タブを開き、ワークフローを有効にします。**AtCoder Nudge → Run workflow** から `morning` などのモードを選んで手動実行できます。最初は Discord の通知先と Secrets が正しいか確認してください。
+
+### 4. 自動実行
+
+通常は日本時間（JST）で次のスケジュールを目指します。
+
+| モード | 時刻 |
+|---|---|
+| `morning` | 7:00 |
+| `check` | 7:15〜23:45（毎時15分・45分） |
+| `remind` | 21:00 |
+| `late` | 23:00 |
+
+GitHub Actions の cron は UTC 基準で、混雑時には開始が遅れることがあります。時刻ぴったりの実行が保証されるわけではありません。
+
+API キャッシュと通知状態は Actions のキャッシュに保存し、実行ごとに新しい runner でも引き継げるようにしています。キャッシュは自分の Fork 内で管理されます。**`data/` や `config.json` をリポジトリにコミットしないでください。** `config.json` は Webhook URL を含むため、Git 管理外です。
+
+画像は任意です。画像を追加しなくてもテキスト中心で動作します。
+
+---
+
 ## ディレクトリ構成
 
 ```
@@ -131,7 +173,7 @@ python nudge.py morning             # 実際に Discord へ送信
 
 褒めるメッセージを試すときは、何か1問 AC して10分ほど待ってから `python nudge.py check --dry-run` を実行します（AtCoder Problems への反映待ちがあるため）。
 
-## サーバーで常時動かす（Linux + systemd）
+## 自前環境で動かす（任意：Raspberry Pi / Linux + systemd）
 
 以下は `~/atcoder-nudge` に clone して、その中に `.venv` を作る前提です。別の場所に置く場合は読み替えてください。
 
