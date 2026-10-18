@@ -1,0 +1,111 @@
+name: AtCoder Nudge
+
+on:
+  schedule:
+    # JST 07:00 (UTC 22:00 on the previous day)
+    - cron: "0 22 * * *"
+    # JST 07:15–23:45, every 30 minutes
+    - cron: "15,45 22,23 * * *"
+    - cron: "15,45 0-14 * * *"
+    # JST 21:00 and 23:00
+    - cron: "0 12 * * *"
+    - cron: "0 14 * * *"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "実行する通知"
+        required: true
+        type: choice
+        default: morning
+        options:
+          - morning
+          - check
+          - remind
+          - late
+
+permissions:
+  contents: read
+
+concurrency:
+  group: atcoder-nudge
+  cancel-in-progress: false
+
+jobs:
+  nudge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # Keep API caches and notification state between ephemeral runners.
+      # Actions caches are private to this repository; do not commit data/.
+      - name: Restore bot data
+        uses: actions/cache@v4
+        with:
+          path: data/
+          key: atcoder-nudge-data-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            atcoder-nudge-data-
+
+      - name: Install dependencies and Japanese font
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fonts-noto-cjk
+          python -m pip install --upgrade pip
+          python -m pip install requests pillow
+
+      - name: Create runtime config
+        env:
+          ATCODER_USER: ${{ secrets.ATCODER_USER }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          if [ -z "$ATCODER_USER" ] || [ -z "$DISCORD_WEBHOOK_URL" ]; then
+            echo "::error::Set ATCODER_USER and DISCORD_WEBHOOK_URL in Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          Path("config.json").write_text(
+              json.dumps({
+                  "atcoder_user": os.environ["ATCODER_USER"],
+                  "webhook_url": os.environ["DISCORD_WEBHOOK_URL"],
+                  "font_path": "",
+              }),
+              encoding="utf-8",
+          )
+          PY
+          mkdir -p data
+
+      - name: Choose notification mode
+        id: mode
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_SCHEDULE: ${{ github.event.schedule }}
+          MANUAL_MODE: ${{ inputs.mode }}
+        shell: bash
+        run: |
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            mode="$MANUAL_MODE"
+          else
+            case "$EVENT_SCHEDULE" in
+              "0 22 * * *") mode="morning" ;;
+              "15,45 22,23 * * *"|"15,45 0-14 * * *") mode="check" ;;
+              "0 12 * * *") mode="remind" ;;
+              "0 14 * * *") mode="late" ;;
+              *) echo "::error::Unknown schedule: $EVENT_SCHEDULE"; exit 1 ;;
+            esac
+          fi
+          echo "mode=$mode" >> "$GITHUB_OUTPUT"
+          echo "Running mode: $mode"
+
+      - name: Run nudge
+        run: python nudge.py "${{ steps.mode.outputs.mode }}"
+
