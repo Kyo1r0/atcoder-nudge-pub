@@ -47,12 +47,24 @@ Raspberry Pi や自前サーバーを用意しなくても、GitHub Actions で�
 
 ### 2. Actions Secrets を登録
 
-Fork したリポジトリで **Settings → Secrets and variables → Actions → New repository secret** を開き、次の2つを登録します。
+Fork したリポジトリで次の順に開きます。
 
-| Secret 名 | 値 |
+1. 上部タブの **Settings**
+2. 左メニューの **Secrets and variables** → **Actions**
+3. 緑の **New repository secret** ボタン
+
+すると下のような「New secret」画面になります。**Name** 欄に Secret 名、**Secret** 欄に値を入れて **Add secret** を押します。
+
+![New secret 画面](docs/new-secret.png)
+
+これを2回繰り返して、次の2つを登録します。
+
+| Name 欄 | Secret 欄 |
 |---|---|
-| `ATCODER_USER` | 自分の AtCoder ユーザー名 |
-| `DISCORD_WEBHOOK_URL` | 通知先 Discord チャンネルの Webhook URL |
+| `ATCODER_USER` | 自分の AtCoder ユーザー名（例: `chokudai`） |
+| `DISCORD_WEBHOOK_URL` | 通知先 Discord チャンネルの Webhook URL（`https://discord.com/api/webhooks/...`） |
+
+登録すると「Repository secrets」の一覧に2つの名前が並びます（値は保存後は表示されません）。
 
 Webhook URL は秘密情報です。コードや README に書いたり、ログに出力したりしないでください。
 
