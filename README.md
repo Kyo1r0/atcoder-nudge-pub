@@ -70,7 +70,29 @@ Webhook URL は秘密情報です。コードや README に書いたり、ログ
 
 ### 3. Actions を有効にして手動テスト
 
-Fork の **Actions** タブを開き、ワークフローを有効にします。**AtCoder Nudge → Run workflow** から `morning` などのモードを選んで手動実行できます。最初は Discord の通知先と Secrets が正しいか確認してください。
+Fork したリポジトリでは、最初は Actions が止まっています。有効にしてから、1回手動で動かして Discord に届くか確認します。
+
+#### 3-1. Actions を有効にする
+
+1. Fork したリポジトリの上部タブで **Actions** を開く
+2. 「Workflows aren't being run on this forked repository」という案内が出るので、緑の **I understand my workflows, go ahead and enable them** ボタンを押す
+
+（このボタンが出ない場合は、すでに有効になっています。そのまま次へ進んでください。）
+
+#### 3-2. 手動で1回動かす
+
+1. Actions 画面の左側にある一覧から **AtCoder Nudge** をクリック
+2. 右側に「This workflow has a workflow_dispatch event trigger.」と出るので、その横の **Run workflow** ボタンを押す
+3. 小さなメニューが開くので、「実行する通知」で `morning` を選び、緑の **Run workflow** を押す
+
+#### 3-3. 結果を確認する
+
+少し待つと一覧に実行が追加されます（出てこないときはページを再読み込みしてください）。
+
+- **緑のチェック ✅** になり、Discord にメッセージが届いていれば成功です
+- **赤いバツ ❌** になった場合は、その実行をクリック →「nudge」→ 赤くなっているステップを開くとエラー内容が見られます。多くは Secrets の名前の打ち間違い（`ATCODER_USER` / `DISCORD_WEBHOOK_URL`）か、Webhook URL のコピーミスです
+
+`morning` 以外の `check` / `remind` / `late` は、条件（今日 AC 済みかどうか等）によっては何も送らずに成功で終わることがあります。動作確認には `morning` を使ってください。
 
 ### 4. 自動実行
 
