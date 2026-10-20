@@ -87,7 +87,11 @@ Fork したリポジトリでは、最初は Actions が止まっています。
 
 #### 3-3. 結果を確認する
 
-少し待つと一覧に実行が追加されます（出てこないときはページを再読み込みしてください）。
+少し待つと一覧に実行が追加されます（出てこないときはページを再読み込みしてください）。左側の「Workflows」の下にある **AtCoder Nudge** が、3-2 でクリックするワークフローです。
+
+![Actions の実行一覧](docs/actions-runs.png)
+
+上の画像は、Secrets を登録する前に自動実行が始まり、すべて失敗している例です。
 
 - **緑のチェック ✅** になり、Discord にメッセージが届いていれば成功です
 - **赤いバツ ❌** になった場合は、その実行をクリック →「nudge」→ 赤くなっているステップを開くとエラー内容が見られます。多くは Secrets の名前の打ち間違い（`ATCODER_USER` / `DISCORD_WEBHOOK_URL`）か、Webhook URL のコピーミスです
@@ -340,6 +344,7 @@ sudo systemctl daemon-reload
 
 | 症状 | 原因と対処 |
 |---|---|
+| Actions が ❌ で `Set ATCODER_USER and DISCORD_WEBHOOK_URL in Settings > Secrets and variables > Actions.` と出る | Secrets が登録されていないか、名前が違う。「2. Actions Secrets を登録」をやり直す |
 | 提出が0件扱いになる | ユーザー名を確認。`atcoder_user` を小文字にして試す |
 | AC したのに褒められない | AtCoder Problems への反映待ち（数分〜十数分）。次の `check` を待つ |
 | 22時台に AC したのに23時に催促された | 同上。反映が間に合わなかった |
