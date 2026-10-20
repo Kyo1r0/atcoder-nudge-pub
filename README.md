@@ -138,9 +138,6 @@ GitHub には、systemd の `systemctl list-timers` のように「次はいつ�
 
 **実際にいつ動いたか** → Actions → 左の **AtCoder Nudge** の実行一覧。自動実行だけ見たいときは、一覧の上の **Event** → **schedule** で絞り込めます。各行の右側に、実行した日時（日本時間）と所要時間が出ます。実行をクリックして **nudge** ジョブを開くと、ログも見られます（systemd でいう `journalctl` にあたります）。
 
-API キャッシュと通知状態は Actions のキャッシュに保存し、実行ごとに新しい runner でも引き継げるようにしています。キャッシュは自分の Fork 内で管理されます。**`data/` や `config.json` をリポジトリにコミットしないでください。** `config.json` は Webhook URL を含むため、Git 管理外です。
-
-画像は任意です。画像を追加しなくてもテキスト中心で動作します。
 
 #### 止め方
 
