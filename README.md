@@ -64,7 +64,9 @@ Fork したリポジトリで次の順に開きます。
 | `ATCODER_USER` | 自分の AtCoder ユーザー名（例: `chokudai`） |
 | `DISCORD_WEBHOOK_URL` | 通知先 Discord チャンネルの Webhook URL（`https://discord.com/api/webhooks/...`） |
 
-登録すると「Repository secrets」の一覧に2つの名前が並びます（値は保存後は表示されません）。
+登録すると「Repository secrets」の一覧に2つの名前が並びます（値は保存後は表示されません）。次のようになっていれば OK です。
+
+![Repository secrets に2つ登録された画面](docs/secrets-list.png)
 
 Webhook URL は秘密情報です。コードや README に書いたり、ログに出力したりしないでください。
 
