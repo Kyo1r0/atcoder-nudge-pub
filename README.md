@@ -83,9 +83,14 @@ Fork したリポジトリでは、最初は Actions が止まっています。
 
 #### 3-2. 手動で1回動かす
 
-1. Actions 画面の左側にある一覧から **AtCoder Nudge** をクリック
-2. 右側に「This workflow has a workflow_dispatch event trigger.」と出るので、その横の **Run workflow** ボタンを押す
-3. 小さなメニューが開くので、「実行する通知」で `morning` を選び、緑の **Run workflow** を押す
+1. Actions 画面の左側「Workflows」の下にある **AtCoder Nudge** をクリック
+2. 右上の緑の **Run workflow** ボタンを押す
+
+![AtCoder Nudge ワークフローの画面](docs/actions-workflow.png)
+
+3. 右側に「Run workflow」パネルが開きます。「Use workflow from」は `main` のまま、「実行する通知」で `morning` を選び、下の緑の **Run workflow** を押す
+
+<img src="docs/run-workflow-panel.png" alt="Run workflow パネル" width="320">
 
 #### 3-3. 結果を確認する
 
