@@ -47,20 +47,71 @@ Raspberry Pi や自前サーバーを用意しなくても、GitHub Actions で�
 
 ### 2. Actions Secrets を登録
 
-Fork したリポジトリで **Settings → Secrets and variables → Actions → New repository secret** を開き、次の2つを登録します。
+Fork したリポジトリで次の順に開きます。
 
-| Secret 名 | 値 |
+1. 上部タブの **Settings**
+2. 左メニューの **Secrets and variables** → **Actions**
+3. 緑の **New repository secret** ボタン
+
+すると下のような「New secret」画面になります。**Name** 欄に Secret 名、**Secret** 欄に値を入れて **Add secret** を押します。
+
+![New secret 画面](docs/new-secret.png)
+
+これを2回繰り返して、次の2つを登録します。
+
+| Name 欄 | Secret 欄 |
 |---|---|
-| `ATCODER_USER` | 自分の AtCoder ユーザー名 |
-| `DISCORD_WEBHOOK_URL` | 通知先 Discord チャンネルの Webhook URL |
+| `ATCODER_USER` | 自分の AtCoder ユーザー名（例: `chokudai`） |
+| `DISCORD_WEBHOOK_URL` | 通知先 Discord チャンネルの Webhook URL（`https://discord.com/api/webhooks/...`） |
+
+登録すると「Repository secrets」の一覧に2つの名前が並びます（値は保存後は表示されません）。次のようになっていれば OK です。
+
+![Repository secrets に2つ登録された画面](docs/secrets-list.png)
 
 Webhook URL は秘密情報です。コードや README に書いたり、ログに出力したりしないでください。
 
 ### 3. Actions を有効にして手動テスト
 
-Fork の **Actions** タブを開き、ワークフローを有効にします。**AtCoder Nudge → Run workflow** から `morning` などのモードを選んで手動実行できます。最初は Discord の通知先と Secrets が正しいか確認してください。
+Fork したリポジトリでは、最初は Actions が止まっています。有効にしてから、1回手動で動かして Discord に届くか確認します。
+
+#### 3-1. Actions を有効にする
+
+1. Fork したリポジトリの上部タブで **Actions** を開く
+2. 「Workflows aren't being run on this forked repository」という案内が出るので、緑の **I understand my workflows, go ahead and enable them** ボタンを押す
+
+（このボタンが出ない場合は、すでに有効になっています。そのまま次へ進んでください。）
+
+#### 3-2. 手動で1回動かす
+
+1. Actions 画面の左側「Workflows」の下にある **AtCoder Nudge** をクリック
+2. 右上の緑の **Run workflow** ボタンを押す
+
+![AtCoder Nudge ワークフローの画面](docs/actions-workflow.png)
+
+3. 右側に「Run workflow」パネルが開きます。「Use workflow from」は `main` のまま、「実行する通知」で `morning` を選び、下の緑の **Run workflow** を押す
+
+<img src="docs/run-workflow-panel.png" alt="Run workflow パネル" width="320">
+
+#### 3-3. 結果を確認する
+
+少し待つと一覧に実行が追加されます（出てこないときはページを再読み込みしてください）。1分ほどで終わります。
+
+![Actions の実行結果](docs/actions-result.png)
+
+上の画像では、一番上の「Manually run」が手動実行で、緑のチェックなので成功です。その下の赤いバツは、Secrets を登録する前に自動実行されて失敗したものです。Secrets 登録後に成功していれば、気にしなくて大丈夫です。
+
+- **緑のチェック ✅** になり、Discord にメッセージが届いていれば成功です
+- **赤いバツ ❌** になった場合は、その実行をクリック →「nudge」→ 赤くなっているステップを開くとエラー内容が見られます。多くは Secrets の名前の打ち間違い（`ATCODER_USER` / `DISCORD_WEBHOOK_URL`）か、Webhook URL のコピーミスです
+
+`morning` 以外の `check` / `remind` / `late` は、条件（今日 AC 済みかどうか等）によっては何も送らずに成功で終わることがあります。動作確認には `morning` を使ってください。
 
 ### 4. 自動実行
+
+#### 始め方
+
+**特別な操作はいりません。** 手順2（Secrets 登録）と手順3（Actions を有効化）が終わっていれば、次の時刻から自動で動き始めます。
+
+自動実行された分は、Actions の一覧に「Scheduled」と表示されます（手動実行は「Manually run by ○○」）。
 
 通常は日本時間（JST）で次のスケジュールを目指します。
 
@@ -73,9 +124,38 @@ Fork の **Actions** タブを開き、ワークフローを有効にします�
 
 GitHub Actions の cron は UTC 基準で、混雑時には開始が遅れることがあります。時刻ぴったりの実行が保証されるわけではありません。
 
+#### スケジュールと実行履歴の確認
+
+GitHub には、systemd の `systemctl list-timers` のように「次はいつ動くか」を一覧で見る画面はありません。代わりに次の2か所で確認します。
+
+**いつ動く設定になっているか** → Actions → 左の **AtCoder Nudge** → タイトル下の **atcoder-nudge.yml** リンク（`.github/workflows/atcoder-nudge.yml`）の `schedule:` 部分。cron は UTC で書かれているので、**9時間足すと日本時間**になります。
+
+| yml の cron（UTC） | 日本時間 | モード |
+|---|---|---|
+| `0 22 * * *` | 毎日 7:00 | `morning` |
+| `15,45 22,23 * * *` と `15,45 0-14 * * *` | 7:15〜23:45 の毎時15分・45分 | `check` |
+| `0 12 * * *` | 21:00 | `remind` |
+| `0 14 * * *` | 23:00 | `late` |
+
+**実際にいつ動いたか** → Actions → 左の **AtCoder Nudge** の実行一覧。自動実行だけ見たいときは、一覧の上の **Event** → **schedule** で絞り込めます。各行の右側に、実行した日時（日本時間）と所要時間が出ます。実行をクリックして **nudge** ジョブを開くと、ログも見られます（systemd でいう `journalctl` にあたります）。
+
 API キャッシュと通知状態は Actions のキャッシュに保存し、実行ごとに新しい runner でも引き継げるようにしています。キャッシュは自分の Fork 内で管理されます。**`data/` や `config.json` をリポジトリにコミットしないでください。** `config.json` は Webhook URL を含むため、Git 管理外です。
 
 画像は任意です。画像を追加しなくてもテキスト中心で動作します。
+
+#### 止め方
+
+1. Actions タブ → 左の **AtCoder Nudge** を開く
+2. 右上の **Run workflow** の隣にある **「…」** ボタンを押す
+3. **Disable workflow** を選ぶ
+
+これで自動実行も手動実行も止まります。Secrets やキャッシュは消えないので、あとで再開できます。
+
+#### 再開するとき
+
+同じ画面を開くと「This workflow was disabled manually.」と表示されるので、**Enable workflow** ボタンを押します。次の時刻からまた自動で動きます。
+
+> 💡 GitHub の仕様で、**リポジトリに60日間コミットなどの動きがないと、自動実行は勝手に止まります**（GitHub からメールが届きます）。止まっていたら、上の「再開するとき」と同じ手順で **Enable workflow** を押してください。
 
 ---
 
@@ -306,6 +386,7 @@ sudo systemctl daemon-reload
 
 | 症状 | 原因と対処 |
 |---|---|
+| Actions が ❌ で `Set ATCODER_USER and DISCORD_WEBHOOK_URL in Settings > Secrets and variables > Actions.` と出る | Secrets が登録されていないか、名前が違う。「2. Actions Secrets を登録」をやり直す |
 | 提出が0件扱いになる | ユーザー名を確認。`atcoder_user` を小文字にして試す |
 | AC したのに褒められない | AtCoder Problems への反映待ち（数分〜十数分）。次の `check` を待つ |
 | 22時台に AC したのに23時に催促された | 同上。反映が間に合わなかった |
